@@ -35,11 +35,32 @@ pole. K dispozici je též metoda pro export obrázku do formátu XPM.
 ...             image[x, y] = square_color
 >>> print(image.width, image.height, len(image.colors), image.background)
 240 60 3 #F0F0F0
+>>> image.resize(250, 80)
+True
+>>> print(image.width, image.height, len(image.colors), image.background)
+250 80 3 #F0F0F0
 >>> image.save()
 >>> newimage = Image(1, 1, img)
 >>> newimage.load()
->>> print(newimage.width, newimage.height, len(newimage.colors), newimage.background)
-240 60 3 #F0F0F0
+>>> print(image.width, image.height, len(image.colors), image.background)
+250 80 3 #F0F0F0
+>>> image[(249, 79)] = "#00FF00"
+>>> print(image.width, image.height, len(image.colors), image.background)
+250 80 4 #F0F0F0
+>>> image.resize(248, 78)
+True
+>>> print(image.width, image.height, len(image.colors), image.background)
+248 78 3 #F0F0F0
+>>> image.resize(245)
+True
+>>> print(image.width, image.height, len(image.colors), image.background)
+245 78 3 #F0F0F0
+>>> image.resize(height=80)
+True
+>>> print(image.width, image.height, len(image.colors), image.background)
+245 80 3 #F0F0F0
+>>> image.resize(245, 80)
+False
 >>> image.export(xpm)
 >>> image.thing
 Traceback (most recent call last):
@@ -129,26 +150,40 @@ class Image:
         def colors(self):
             return set(self.__colors)
 
-    def resize(self, width, height):
+    def resize(self, width=None, height=None):
+        """Změní rozměry obrázku
+
+        Pokud je nový rozměr menší, odebere se i barva použitá mimo rozměr.
+        Pokud není zadána šířka nebo výška, použije se stávající hodnota.
+        """
+        if width == None:
+            width = self.width
+        if height == None:
+            height = self.height
+        def_width = self.width
+        def_height = self.height
+        assert width > 0, "šířka musí být větší než 0"
+        assert height > 0, "výška musí být větší než 0"
         if width < self.width:
             for x in range(width, self.width):
                 for y in range(self.height):
                     if (x, y) in self.__data.keys():
-                        self.__colors.remove(self.__data[(x, y)])
                         self.__data.pop((x, y))
+            self.__colors = (set(self.__data.values()) |
+                             {self.__background})
         if height < self.height:
-            for x in range(len(self.width)):
+            for x in range(self.width):
                 for y in range(height, self.height):
                     if (x, y) in self.__data.keys():
-                        self.__colors.remove(self.__data[(x, y)])
                         self.__data.pop((x, y))
-        if width == None:
-            pass
-        if height == None:
-            pass
+            self.__colors = (set(self.__data.values()) |
+                             {self.__background})
+        self.__width = width
+        self.__height = height
+        if def_width != self.width or def_height != self.height:
+            return True
         else:
-            self.__width = width
-            self.__height = height
+            return False
 
     def __getitem__(self, coordinate):
         """Vrátí barvu na zadané souřadnici (x, y), což bude
