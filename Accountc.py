@@ -62,7 +62,12 @@ class Account:
         [Nákup číslo 1, Nákup číslo 2]
         >>> ucet_1.number
         123456
+        >>> len(ucet_1)
+        2
+        >>> ucet_1.balance
+        10310.0
         """
+        assert len(name) >= 4, "Jméno musí mít minimálně 4 znaky"
         self.__number = number
         self.__name = name
         if transactions == None:
@@ -80,6 +85,27 @@ class Account:
     @property
     def transactions(self):
         return self.__transactions
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def balance(self):
+        return self.__balance()
+
+    def __balance(self):
+        bal = 0
+        for transaction in self.transactions:
+            bal += float(transaction.eur)
+        return bal
+
+    def __len__(self):
+        return len(self.transactions)
+
+    def set_name(self, name):
+        assert len(name) >= 4, "Jméno musí mít minimálně 4 znaky"
+        self.__name = name
 
     def add(self, transaction):
         assert isinstance(transaction, Transaction), "Objekt musí být třídy Transaction"
